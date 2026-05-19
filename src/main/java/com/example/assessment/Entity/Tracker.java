@@ -9,8 +9,7 @@ public class Tracker {
     @Id
     private String taskName;
 
-    private String description;
-    private boolean completionStatus;
+    private boolean completed;
 
     public String getTaskName() {
         return taskName;
@@ -20,20 +19,11 @@ public class Tracker {
         this.taskName = taskName;
     }
 
-    public String getDescription() {
-        return description;
+    public boolean isCompleted() {
+        return completed;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
-
-    public boolean isCompletionStatus() {
-        return completionStatus;
-    }
-
-    public void setCompletionStatus(boolean completionStatus) {
-        this.completionStatus = completionStatus;
-    }
-
 }
