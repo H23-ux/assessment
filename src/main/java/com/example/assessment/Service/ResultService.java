@@ -2,115 +2,78 @@ package com.example.assessment.Service;
 
 import com.example.assessment.Entity.Result;
 import com.example.assessment.Repository.ResultRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class ResultService {
 
-    private static final int PASS_MARK = 35;
+    @Autowired
+    private ResultRepo repo;
 
-    private final ResultRepo resultRepo;
-
-    public ResultService(ResultRepo resultRepo) {
-        this.resultRepo = resultRepo;
+    // SAVE RESULT
+    public Result saveResult(Result result) {
+        return repo.save(result);
     }
 
-    public ResultSummary getResultSummary() {
-        List<Result> results = resultRepo.findAll();
-        Map<String, Integer> topScoresBySubject = calculateTopScoresBySubject(results);
-        double passPercent = calculatePassPercent(results);
-        return new ResultSummary(topScoresBySubject, passPercent);
+    // GET ALL
+    public List<Result> getAllResults() {
+        return repo.findAll();
     }
 
-    private Map<String, Integer> calculateTopScoresBySubject(List<Result> results) {
-        if (results.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        return results.stream()
-                .filter(result -> result.getSubject() != null && result.getMarks() != null)
-                .collect(Collectors.groupingBy(
-                        Result::getSubject,
-                        Collectors.collectingAndThen(Collectors.maxBy((a, b) -> Integer.compare(a.getMarks(), b.getMarks())),
-                                optional -> optional.map(Result::getMarks).orElse(0))));
-    }
+    // TOP SCORER IN EACH SUBJECT
+    public void getTopScorers() {
 
-    private double calculatePassPercent(List<Result> results) {
-        if (results.isEmpty()) {
-            return 0.0;
-        }
-        long passedCount = results.stream()
-                .filter(result -> result.getMarks() != null && result.getMarks() >= PASS_MARK)
-                .count();
-        return passedCount * 100.0 / results.size();
-    }
+        List<Result> results = repo.findAll();
 
-    public ResultGrade getGrade(Long id) {
-        return resultRepo.findById(id)
-                .map(result -> new ResultGrade(result.getMarks(), gradeFor(result.getMarks())))
-                .orElse(null);
-    }
+        Map<String, Result> topScorers = new HashMap<>();
 
-    private String gradeFor(Integer marks) {
-        if (marks == null) {
-            return "unknown";
-        }
-        if (marks >= 90) {
-            return "A";
-        }
-        if (marks >= 80) {
-            return "B";
-        }
-        if (marks >= 70) {
-            return "C";
-        }
-        if (marks >= 60) {
-            return "D";
-        }
-        if (marks >= PASS_MARK) {
-            return "P";
-        }
-        return "F";
-    }
+        for (Result r : results) {
 
-    public static class ResultSummary {
-        private final Map<String, Integer> topScoresBySubject;
-        private final double passPercent;
+            String subject = r.getSubject();
 
-        public ResultSummary(Map<String, Integer> topScoresBySubject, double passPercent) {
-            this.topScoresBySubject = topScoresBySubject;
-            this.passPercent = passPercent;
+            if (!topScorers.containsKey(subject)
+                    || r.getMarks() > topScorers.get(subject).getMarks()) {
+
+                topScorers.put(subject, r);
+            }
         }
 
-        public Map<String, Integer> getTopScoresBySubject() {
-            return topScoresBySubject;
-        }
+        System.out.println("TOP SCORERS:");
 
-        public double getPassPercent() {
-            return passPercent;
+        for (String subject : topScorers.keySet()) {
+
+            Result r = topScorers.get(subject);
+
+            System.out.println(
+                    subject + " -> "
+                    + r.getStdName()
+                    + " : "
+                    + r.getMarks()
+            );
         }
     }
 
-    public static class ResultGrade {
-        private final Integer marks;
-        private final String grade;
+    // PASS PERCENTAGE
+    public void getPassPercentage() {
 
-        public ResultGrade(Integer marks, String grade) {
-            this.marks = marks;
-            this.grade = grade;
+        List<Result> results = repo.findAll();
+
+        int total = results.size();
+        int pass = 0;
+
+        for (Result r : results) {
+
+            if (r.getMarks() >= 40) {
+                pass++;
+            }
         }
 
-        public Integer getMarks() {
-            return marks;
-        }
+        double percentage = ((double) pass / total) * 100;
 
-        public String getGrade() {
-            return grade;
-        }
+        System.out.println("PASS PERCENTAGE = " + percentage + "%");
     }
 }
 
