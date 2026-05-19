@@ -6,24 +6,42 @@ import com.example.assessment.Service.ResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/results")
+@RequestMapping("/result")
 public class ResultController {
 
-    private final ResultService resultService;
+    @Autowired
+    private ResultService service;
 
-    public ResultController(ResultService resultService) {
-        this.resultService = resultService;
+    // ADD RESULT
+    @PostMapping
+    public Result addResult(@RequestBody Result result) {
+        return service.saveResult(result);
     }
 
-    @GetMapping("/summary")
-    public ResultService.ResultSummary getResultSummary() {
-        return resultService.getResultSummary();
+    // GET ALL RESULTS
+    @GetMapping
+    public List<Result> getAllResults() {
+        return service.getAllResults();
     }
 
-    @GetMapping("/{id}/grade")
-    public ResultService.ResultGrade getResultGrade(@PathVariable Long id) {
-        return resultService.getGrade(id);
+    // TOP SCORERS
+    @GetMapping("/topscorers")
+    public String topScorers() {
+
+        service.getTopScorers();
+
+        return "Top scorers printed in console";
+    }
+
+    // PASS PERCENTAGE
+    @GetMapping("/passpercentage")
+    public String passPercentage() {
+
+        service.getPassPercentage();
+
+        return "Pass percentage printed in console";
     }
 }
-
